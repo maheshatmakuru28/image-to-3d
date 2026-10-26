@@ -2,351 +2,161 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>3D Image Converter</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Natural 3D Photo Converter</title>
 
 <style>
-*{box-sizing:border-box}
-body{
-  margin:0;
-  padding:20px;
-  font-family:Arial,sans-serif;
-  background:#080d19;
-  color:white;
+* {
+    box-sizing: border-box;
 }
-.container{
-  max-width:700px;
-  margin:auto;
+
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #080d19;
+    color: white;
 }
-h1{
-  text-align:center;
-  font-size:32px;
+
+.container {
+    max-width: 850px;
+    margin: auto;
 }
-h1 span{color:#60a5fa}
-p{color:#b6c5dc;line-height:1.7}
-.card{
-  background:#121c31;
-  border:1px solid #2b3b59;
-  border-radius:18px;
-  padding:22px;
-  margin:20px 0;
+
+header {
+    text-align: center;
+    padding: 20px 0;
 }
-.upload{
-  display:block;
-  padding:30px 15px;
-  text-align:center;
-  border:2px dashed #60a5fa;
-  border-radius:14px;
-  cursor:pointer;
+
+h1 {
+    font-size: clamp(28px, 5vw, 42px);
 }
-.upload div{font-size:45px;margin-bottom:12px}
-input[type=file]{display:none}
-input[type=range]{width:100%;accent-color:#60a5fa}
-button{
-  width:100%;
-  padding:15px;
-  margin-top:14px;
-  border:0;
-  border-radius:10px;
-  background:linear-gradient(100deg,#2563eb,#7c3aed);
-  color:white;
-  font-size:16px;
-  font-weight:bold;
-  cursor:pointer;
+
+h1 span {
+    color: #60a5fa;
 }
-button:disabled{opacity:.5}
-.secondary{background:#263752}
-.preview{
-  min-height:230px;
-  background:#080e1b;
-  border-radius:14px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:12px;
-  overflow:hidden;
+
+p {
+    color: #b6c5dc;
+    line-height: 1.7;
 }
-#result{
-  display:none;
-  width:100%;
-  height:auto;
-  object-fit:contain;
+
+.card {
+    background: #121c31;
+    border: 1px solid #2b3b59;
+    border-radius: 18px;
+    padding: 22px;
+    margin: 20px 0;
 }
-.status{
-  color:#93c5fd;
-  margin-top:15px;
-  line-height:1.6;
-  overflow-wrap:anywhere;
+
+.upload {
+    display: block;
+    padding: 30px 15px;
+    text-align: center;
+    border: 2px dashed #60a5fa;
+    border-radius: 14px;
+    cursor: pointer;
+    background: #0b1426;
 }
-small{color:#b6c5dc}
-</style>
-</head>
 
-<body>
-<div class="container">
-
-<h1>✨ 3D Image <span>Converter</span></h1>
-<p style="text-align:center">
-Upload your photo, convert it into a 3D-style image,
-and download it for free.
-</p>
-
-<section class="card">
-<h2>📤 Upload Image</h2>
-
-<label class="upload" for="photo">
-<div>🖼️</div>
-<strong id="fileName">Choose Your Image</strong>
-<p>JPG, PNG, WEBP · Maximum 10 MB</p>
-</label>
-
-<input type="file" id="photo"
-accept="image/jpeg,image/png,image/webp">
-
-<p>
-3D Depth Strength:
-<strong id="depthText">12 px</strong>
-</p>
-
-<input type="range" id="depth" min="2" max="40" value="12">
-
-<button id="convert" disabled>
-✨ CONVERT TO 3D IMAGE
-</button>
-
-<button class="secondary" id="reset">
-Reset Everything
-</button>
-
-<div class="status" id="status">
-Select an image to get started.
-</div>
-</section>
-
-<section class="card">
-<h2>🧊 3D Image Preview</h2>
-
-<div class="preview">
-<p id="placeholder">Your converted image will appear here.</p>
-<img id="result" alt="Converted 3D-style image">
-</div>
-
-<button id="download" disabled>
-⬇ DOWNLOAD 3D IMAGE (PNG)
-</button>
-
-<div class="status" id="downloadStatus"></div>
-
-<p>
-<strong>Note:</strong> This creates a red/cyan 3D-style image
-(anaglyph effect). It is not a full 3D model.
-</p>
-</section>
-
-</div>
-
-<script>
-"use strict";
-
-const photo = document.getElementById("photo");
-const depth = document.getElementById("depth");
-const depthText = document.getElementById("depthText");
-const convert = document.getElementById("convert");
-const download = document.getElementById("download");
-const result = document.getElementById("result");
-const status = document.getElementById("status");
-const downloadStatus = document.getElementById("downloadStatus");
-const placeholder = document.getElementById("placeholder");
-
-let originalImage = null;
-let convertedBlob = null;
-let fileBaseName = "3d-image";
-let resultURL = null;
-
-depth.addEventListener("input", () => {
-  depthText.textContent = depth.value + " px";
-});
-
-photo.addEventListener("change", () => {
-  const file = photo.files[0];
-  if (!file) return;
-
-  if (!["image/jpeg","image/png","image/webp"].includes(file.type)) {
-    status.textContent = "Please select JPG, PNG or WEBP.";
-    photo.value = "";
-    return;
-  }
-
-  if (file.size > 10 * 1024 * 1024) {
-    status.textContent = "Image must be smaller than 10 MB.";
-    photo.value = "";
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    const img = new Image();
-
-    img.onload = () => {
-      originalImage = img;
-      fileBaseName = file.name.replace(/\.[^.]+$/, "") || "3d-image";
-
-      document.getElementById("fileName").textContent = file.name;
-      convert.disabled = false;
-      download.disabled = true;
-      convertedBlob = null;
-
-      status.textContent = "Image loaded! Tap Convert to 3D Image.";
-      downloadStatus.textContent = "";
-    };
-
-    img.onerror = () => {
-      status.textContent = "Unable to load image. Try another file.";
-    };
-
-    img.src = reader.result;
-  };
-
-  reader.onerror = () => {
-    status.textContent = "Could not read the image file.";
-  };
-
-  reader.readAsDataURL(file);
-});
-
-convert.addEventListener("click", () => {
-  if (!originalImage) {
-    status.textContent = "Please upload an image first.";
-    return;
-  }
-
-  convert.disabled = true;
-  status.textContent = "Converting image... Please wait.";
-
-  setTimeout(() => {
-    try {
-      const width = originalImage.naturalWidth;
-      const height = originalImage.naturalHeight;
-
-      if (!width || !height) {
-        throw new Error("Invalid image dimensions.");
-      }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-
-      const ctx = canvas.getContext("2d");
-
-      if (!ctx) throw new Error("Canvas is not supported.");
-
-      ctx.drawImage(originalImage, 0, 0, width, height);
-
-      const inputData = ctx.getImageData(0, 0, width, height);
-      const outputData = ctx.createImageData(width, height);
-
-      const src = inputData.data;
-      const dst = outputData.data;
-      const shift = Math.max(1, Number(depth.value));
-
-      for (let y = 0; y < height; y++) {
-        const row = y * width * 4;
-
-        for (let x = 0; x < width; x++) {
-          const i = row + x * 4;
-
-          const redX = Math.min(width - 1, x + shift);
-          const cyanX = Math.max(0, x - shift);
-
-          const redIndex = row + redX * 4;
-          const cyanIndex = row + cyanX * 4;
-
-          dst[i] = src[redIndex];
-          dst[i + 1] = src[cyanIndex + 1];
-          dst[i + 2] = src[cyanIndex + 2];
-          dst[i + 3] = src[i + 3];
-        }
-      }
-
-      ctx.putImageData(outputData, 0, 0);
-
-      canvas.toBlob(blob => {
-        convert.disabled = false;
-
-        if (!blob) {
-          status.textContent = "Conversion failed. Try again.";
-          return;
-        }
-
-        convertedBlob = blob;
-
-        if (resultURL) URL.revokeObjectURL(resultURL);
-        resultURL = URL.createObjectURL(blob);
-
-        result.src = resultURL;
-        result.style.display = "block";
-        placeholder.style.display = "none";
-
-        download.disabled = false;
-        status.textContent = "✅ Conversion successful!";
-        downloadStatus.textContent = "Your PNG image is ready to download.";
-
-      }, "image/png");
-
-    } catch (error) {
-      convert.disabled = false;
-      status.textContent = "Error: " + error.message;
-    }
-  }, 50);
-});
-
-download.addEventListener("click", () => {
-  if (!convertedBlob) {
-    downloadStatus.textContent = "Convert an image first.";
-    return;
-  }
-
-  const url = URL.createObjectURL(convertedBlob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = fileBaseName + "-3d.png";
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-
-  downloadStatus.textContent = "✅ Download started!";
-});
-
-document.getElementById("reset").addEventListener("click", () => {
-  photo.value = "";
-  originalImage = null;
-  convertedBlob = null;
-
-  if (resultURL) {
-    URL.revokeObjectURL(resultURL);
-    resultURL = null;
-  }
-
-  result.removeAttribute("src");
-  result.style.display = "none";
-  placeholder.style.display = "block";
-
-  document.getElementById("fileName").textContent = "Choose Your Image";
-
-  depth.value = 12;
-  depthText.textContent = "12 px";
-
-  convert.disabled = true;
-  download.disabled = true;
-
-  status.textContent = "Select an image to get started.";
-  downloadStatus.textContent = "";
-});
-</script>
-</body>
-</html>
+.upload-icon {
+    font-size: 45px;
+    margin-bottom: 12px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+button {
+    width: 100%;
+    padding: 15px;
+    margin-top: 14px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(100deg, #2563eb, #7c3aed);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.secondary {
+    background: #263752;
+}
+
+.control {
+    margin-top: 22px;
+}
+
+.control label {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.control output {
+    color: #60a5fa;
+}
+
+input[type="range"] {
+    width: 100%;
+    accent-color: #60a5fa;
+}
+
+.preview {
+    min-height: 280px;
+    background: radial-gradient(
+        circle,
+        #263b5b,
+        #080d19
+    );
+    border-radius: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+    overflow: hidden;
+    perspective: 1000px;
+}
+
+#photoPreview {
+    display: none;
+    max-width: 100%;
+    max-height: 450px;
+    object-fit: contain;
+    border-radius: 8px;
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.placeholder {
+    text-align: center;
+    color: #b6c5dc;
+}
+
+.status {
+    color: #93c5fd;
+    margin-top: 15px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.note {
+    font-size: 12px;
+    color: #b6c5dc;
+}
+
+@media (min-width: 700px) {
+    .layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        align
