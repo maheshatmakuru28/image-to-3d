@@ -2,183 +2,351 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Image Studio | Image Effects</title>
-<meta name="description" content="Upload a photo, apply 3D perspective effects, and download your edited image.">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D Image Converter</title>
+
 <style>
-:root{--bg:#080d19;--card:#111a2e;--border:#293854;--blue:#60a5fa;--text:#f8fafc;--muted:#a5b4cc}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-header{padding:20px 6%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
-.logo{font-size:24px;font-weight:bold;color:var(--blue)}
-.tag{padding:9px 14px;border-radius:30px;background:#172744;color:#bfdbfe;font-size:12px}
-.hero{text-align:center;padding:48px 18px 30px}
-.hero h1{font-size:clamp(30px,5vw,48px);margin-bottom:16px;line-height:1.2}
-.hero h1 span{color:var(--blue)}
-.hero p{color:var(--muted);line-height:1.8;max-width:650px;margin:auto}
-.container{width:min(1150px,92%);margin:20px auto 50px;display:grid;grid-template-columns:.9fr 1.1fr;gap:22px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:25px;min-width:0}
-.card h2{font-size:21px;margin-bottom:20px}
-.upload-box{min-height:225px;padding:25px 15px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border:2px dashed #45618d;border-radius:16px;cursor:pointer;background:#0b1426;transition:.2s}
-.upload-box:hover{border-color:var(--blue);background:#101f39}
-.upload-icon{font-size:48px;margin-bottom:16px}
-.upload-box p{color:var(--muted);margin-top:12px;font-size:13px;line-height:1.6}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  padding:20px;
+  font-family:Arial,sans-serif;
+  background:#080d19;
+  color:white;
+}
+.container{
+  max-width:700px;
+  margin:auto;
+}
+h1{
+  text-align:center;
+  font-size:32px;
+}
+h1 span{color:#60a5fa}
+p{color:#b6c5dc;line-height:1.7}
+.card{
+  background:#121c31;
+  border:1px solid #2b3b59;
+  border-radius:18px;
+  padding:22px;
+  margin:20px 0;
+}
+.upload{
+  display:block;
+  padding:30px 15px;
+  text-align:center;
+  border:2px dashed #60a5fa;
+  border-radius:14px;
+  cursor:pointer;
+}
+.upload div{font-size:45px;margin-bottom:12px}
 input[type=file]{display:none}
-button{border:0;border-radius:11px;padding:13px 17px;font-size:14px;font-weight:bold;cursor:pointer;transition:.2s}
-button:hover{filter:brightness(1.15)}
-button:disabled{opacity:.5;cursor:not-allowed}
-.primary{color:white;background:linear-gradient(100deg,#2563eb,#7c3aed)}
-.secondary{color:white;background:#253651}
-.full{width:100%;margin-top:18px}
-.status{color:#93c5fd;font-size:13px;line-height:1.7;margin-top:16px;overflow-wrap:anywhere}
-.preview{min-height:300px;border-radius:15px;background:radial-gradient(circle at center,#243b61,#0b1221 75%);display:flex;justify-content:center;align-items:center;padding:25px;overflow:hidden;perspective:1000px;touch-action:pan-y}
-#previewImage{display:none;max-width:100%;max-height:350px;object-fit:contain;border-radius:12px;transform-style:preserve-3d;box-shadow:0 20px 45px #0009}
-.placeholder{color:var(--muted);text-align:center;line-height:2}
-.controls{margin-top:24px}
-.control{margin-bottom:20px}
-.control label{display:flex;justify-content:space-between;gap:10px;margin-bottom:10px;font-size:14px}
-.control label span{color:var(--blue)}
-input[type=range]{display:block;width:100%;accent-color:var(--blue);cursor:pointer}
-.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
-.actions button{flex:1;min-width:130px}
-.note{font-size:12px;color:var(--muted);line-height:1.7;margin-top:16px}
-footer{padding:28px 15px;text-align:center;border-top:1px solid var(--border);color:var(--muted);font-size:13px;line-height:2}
-@media(max-width:780px){header{padding:18px 5%}.logo{font-size:20px}.container{grid-template-columns:1fr}.card{padding:19px}.hero{padding-top:35px}.preview{min-height:240px}}
+input[type=range]{width:100%;accent-color:#60a5fa}
+button{
+  width:100%;
+  padding:15px;
+  margin-top:14px;
+  border:0;
+  border-radius:10px;
+  background:linear-gradient(100deg,#2563eb,#7c3aed);
+  color:white;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+button:disabled{opacity:.5}
+.secondary{background:#263752}
+.preview{
+  min-height:230px;
+  background:#080e1b;
+  border-radius:14px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:12px;
+  overflow:hidden;
+}
+#result{
+  display:none;
+  width:100%;
+  height:auto;
+  object-fit:contain;
+}
+.status{
+  color:#93c5fd;
+  margin-top:15px;
+  line-height:1.6;
+  overflow-wrap:anywhere;
+}
+small{color:#b6c5dc}
 </style>
 </head>
+
 <body>
-<header><div class="logo">✨ 3D Image Studio</div><div class="tag">IMAGE CREATOR</div></header>
-<section class="hero">
-<h1>Turn Your Photos Into <span>3D Style</span></h1>
-<p>Upload a photo, explore perspective effects, customize brightness and contrast, and download your edited image.</p>
-</section>
-<main class="container">
+<div class="container">
+
+<h1>✨ 3D Image <span>Converter</span></h1>
+<p style="text-align:center">
+Upload your photo, convert it into a 3D-style image,
+and download it for free.
+</p>
+
 <section class="card">
 <h2>📤 Upload Image</h2>
-<label class="upload-box" for="fileInput">
-<div class="upload-icon">🖼️</div><strong id="uploadText">Choose Your Image</strong>
-<p>Click here to upload<br>JPG, PNG or WEBP · Maximum 10 MB</p>
+
+<label class="upload" for="photo">
+<div>🖼️</div>
+<strong id="fileName">Choose Your Image</strong>
+<p>JPG, PNG, WEBP · Maximum 10 MB</p>
 </label>
-<input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
-<button class="primary full" id="resetButton">Reset Everything</button>
-<div class="status" id="status" aria-live="polite">Upload an image to get started.</div>
-<p class="note">Privacy: Images are processed in your browser. This website does not upload your photo to the server.</p>
+
+<input type="file" id="photo"
+accept="image/jpeg,image/png,image/webp">
+
+<p>
+3D Depth Strength:
+<strong id="depthText">12 px</strong>
+</p>
+
+<input type="range" id="depth" min="2" max="40" value="12">
+
+<button id="convert" disabled>
+✨ CONVERT TO 3D IMAGE
+</button>
+
+<button class="secondary" id="reset">
+Reset Everything
+</button>
+
+<div class="status" id="status">
+Select an image to get started.
+</div>
 </section>
+
 <section class="card">
-<h2>🎨 3D Preview Studio</h2>
-<div class="preview" id="previewArea">
-<div class="placeholder" id="placeholder">✨ Your Preview Appears Here<br>Upload an image to begin.</div>
-<img id="previewImage" alt="Edited image preview">
+<h2>🧊 3D Image Preview</h2>
+
+<div class="preview">
+<p id="placeholder">Your converted image will appear here.</p>
+<img id="result" alt="Converted 3D-style image">
 </div>
-<div class="controls">
-<div class="control"><label for="rotateX">Rotate X <span id="xValue">0°</span></label><input type="range" id="rotateX" min="-35" max="35" value="0"></div>
-<div class="control"><label for="rotateY">Rotate Y <span id="yValue">0°</span></label><input type="range" id="rotateY" min="-35" max="35" value="0"></div>
-<div class="control"><label for="zoom">Zoom <span id="zoomValue">100%</span></label><input type="range" id="zoom" min="50" max="150" value="100"></div>
-<div class="control"><label for="brightness">Brightness <span id="brightnessValue">100%</span></label><input type="range" id="brightness" min="50" max="150" value="100"></div>
-<div class="control"><label for="contrast">Contrast <span id="contrastValue">100%</span></label><input type="range" id="contrast" min="50" max="150" value="100"></div>
-</div>
-<div class="actions"><button class="primary" id="downloadButton">⬇ Download PNG</button><button class="secondary" id="resetViewButton">Reset View</button></div>
-<div class="status" id="downloadStatus" aria-live="polite"></div>
-<p class="note">Note: This version creates a 3D perspective effect. It does not generate a real 3D mesh or GLB model.</p>
+
+<button id="download" disabled>
+⬇ DOWNLOAD 3D IMAGE (PNG)
+</button>
+
+<div class="status" id="downloadStatus"></div>
+
+<p>
+<strong>Note:</strong> This creates a red/cyan 3D-style image
+(anaglyph effect). It is not a full 3D model.
+</p>
 </section>
-</main>
-<footer><strong>3D Image Studio</strong><br>Browser-Based Image Editor<br>Upload · Edit · Preview · Download</footer>
+
+</div>
+
 <script>
 "use strict";
-const fileInput=document.getElementById("fileInput");
-const previewImage=document.getElementById("previewImage");
-const placeholder=document.getElementById("placeholder");
-const uploadText=document.getElementById("uploadText");
-const statusText=document.getElementById("status");
-const downloadStatus=document.getElementById("downloadStatus");
-const previewArea=document.getElementById("previewArea");
-const rotateX=document.getElementById("rotateX");
-const rotateY=document.getElementById("rotateY");
-const zoom=document.getElementById("zoom");
-const brightness=document.getElementById("brightness");
-const contrast=document.getElementById("contrast");
-let currentImageURL=null;
-let originalFileName="3d-image";
-let imageReady=false;
 
-function updatePreview(){
- const x=Number(rotateX.value),y=Number(rotateY.value),z=Number(zoom.value)/100;
- const b=Number(brightness.value),c=Number(contrast.value);
- previewImage.style.transform=`rotateX(${-x}deg) rotateY(${y}deg) scale(${z})`;
- previewImage.style.filter=`brightness(${b}%) contrast(${c}%)`;
- document.getElementById("xValue").textContent=x+"°";
- document.getElementById("yValue").textContent=y+"°";
- document.getElementById("zoomValue").textContent=Math.round(z*100)+"%";
- document.getElementById("brightnessValue").textContent=b+"%";
- document.getElementById("contrastValue").textContent=c+"%";
-}
-function resetControls(){
- rotateX.value=0;rotateY.value=0;zoom.value=100;brightness.value=100;contrast.value=100;updatePreview();
-}
-[rotateX,rotateY,zoom,brightness,contrast].forEach(input=>input.addEventListener("input",updatePreview));
+const photo = document.getElementById("photo");
+const depth = document.getElementById("depth");
+const depthText = document.getElementById("depthText");
+const convert = document.getElementById("convert");
+const download = document.getElementById("download");
+const result = document.getElementById("result");
+const status = document.getElementById("status");
+const downloadStatus = document.getElementById("downloadStatus");
+const placeholder = document.getElementById("placeholder");
 
-fileInput.addEventListener("change",function(){
- const file=fileInput.files[0];if(!file)return;
- const allowed=["image/jpeg","image/png","image/webp"];
- if(!allowed.includes(file.type)){statusText.textContent="Error: Choose a JPG, PNG or WEBP image.";fileInput.value="";return;}
- if(file.size>10*1024*1024){statusText.textContent="Error: Maximum image size is 10 MB.";fileInput.value="";return;}
- if(currentImageURL){URL.revokeObjectURL(currentImageURL);currentImageURL=null;}
- imageReady=false;statusText.textContent="Loading image...";downloadStatus.textContent="";
- const imageURL=URL.createObjectURL(file);currentImageURL=imageURL;
- previewImage.onload=function(){
-  if(currentImageURL!==imageURL)return;
-  imageReady=true;placeholder.style.display="none";previewImage.style.display="block";
-  uploadText.textContent=file.name;originalFileName=file.name.replace(/\.[^.]+$/,"");
-  statusText.textContent="Image loaded successfully! Adjust your effects below.";updatePreview();
- };
- previewImage.onerror=function(){
-  if(currentImageURL!==imageURL)return;
-  imageReady=false;statusText.textContent="Could not load this image. Please try another file.";
-  previewImage.style.display="none";placeholder.style.display="block";
- };
- previewImage.src=imageURL;
+let originalImage = null;
+let convertedBlob = null;
+let fileBaseName = "3d-image";
+let resultURL = null;
+
+depth.addEventListener("input", () => {
+  depthText.textContent = depth.value + " px";
 });
 
-document.getElementById("resetViewButton").addEventListener("click",()=>{resetControls();downloadStatus.textContent="";});
-document.getElementById("resetButton").addEventListener("click",()=>{
- fileInput.value="";
- if(currentImageURL){URL.revokeObjectURL(currentImageURL);currentImageURL=null;}
- imageReady=false;previewImage.removeAttribute("src");previewImage.style.display="none";placeholder.style.display="block";
- uploadText.textContent="Choose Your Image";statusText.textContent="Upload an image to get started.";downloadStatus.textContent="";resetControls();
+photo.addEventListener("change", () => {
+  const file = photo.files[0];
+  if (!file) return;
+
+  if (!["image/jpeg","image/png","image/webp"].includes(file.type)) {
+    status.textContent = "Please select JPG, PNG or WEBP.";
+    photo.value = "";
+    return;
+  }
+
+  if (file.size > 10 * 1024 * 1024) {
+    status.textContent = "Image must be smaller than 10 MB.";
+    photo.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    const img = new Image();
+
+    img.onload = () => {
+      originalImage = img;
+      fileBaseName = file.name.replace(/\.[^.]+$/, "") || "3d-image";
+
+      document.getElementById("fileName").textContent = file.name;
+      convert.disabled = false;
+      download.disabled = true;
+      convertedBlob = null;
+
+      status.textContent = "Image loaded! Tap Convert to 3D Image.";
+      downloadStatus.textContent = "";
+    };
+
+    img.onerror = () => {
+      status.textContent = "Unable to load image. Try another file.";
+    };
+
+    img.src = reader.result;
+  };
+
+  reader.onerror = () => {
+    status.textContent = "Could not read the image file.";
+  };
+
+  reader.readAsDataURL(file);
 });
 
-document.getElementById("downloadButton").addEventListener("click",function(){
- if(!imageReady||!previewImage.naturalWidth){downloadStatus.textContent="Please upload an image before downloading.";return;}
- const button=this;button.disabled=true;
- try{
-  const canvas=document.createElement("canvas"),context=canvas.getContext("2d");
-  if(!context)throw new Error("Canvas is unavailable.");
-  canvas.width=previewImage.naturalWidth;canvas.height=previewImage.naturalHeight;
-  context.filter=`brightness(${brightness.value}%) contrast(${contrast.value}%)`;
-  context.drawImage(previewImage,0,0,canvas.width,canvas.height);
-  canvas.toBlob(function(blob){
-   button.disabled=false;
-   if(!blob){downloadStatus.textContent="Download failed. Please try again.";return;}
-   const url=URL.createObjectURL(blob),link=document.createElement("a");
-   link.href=url;link.download=originalFileName+"-edited.png";document.body.appendChild(link);link.click();link.remove();
-   setTimeout(()=>URL.revokeObjectURL(url),2000);
-   downloadStatus.textContent="Your edited PNG image has been downloaded.";
-  },"image/png");
- }catch(error){button.disabled=false;downloadStatus.textContent="Download failed: "+error.message;}
+convert.addEventListener("click", () => {
+  if (!originalImage) {
+    status.textContent = "Please upload an image first.";
+    return;
+  }
+
+  convert.disabled = true;
+  status.textContent = "Converting image... Please wait.";
+
+  setTimeout(() => {
+    try {
+      const width = originalImage.naturalWidth;
+      const height = originalImage.naturalHeight;
+
+      if (!width || !height) {
+        throw new Error("Invalid image dimensions.");
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) throw new Error("Canvas is not supported.");
+
+      ctx.drawImage(originalImage, 0, 0, width, height);
+
+      const inputData = ctx.getImageData(0, 0, width, height);
+      const outputData = ctx.createImageData(width, height);
+
+      const src = inputData.data;
+      const dst = outputData.data;
+      const shift = Math.max(1, Number(depth.value));
+
+      for (let y = 0; y < height; y++) {
+        const row = y * width * 4;
+
+        for (let x = 0; x < width; x++) {
+          const i = row + x * 4;
+
+          const redX = Math.min(width - 1, x + shift);
+          const cyanX = Math.max(0, x - shift);
+
+          const redIndex = row + redX * 4;
+          const cyanIndex = row + cyanX * 4;
+
+          dst[i] = src[redIndex];
+          dst[i + 1] = src[cyanIndex + 1];
+          dst[i + 2] = src[cyanIndex + 2];
+          dst[i + 3] = src[i + 3];
+        }
+      }
+
+      ctx.putImageData(outputData, 0, 0);
+
+      canvas.toBlob(blob => {
+        convert.disabled = false;
+
+        if (!blob) {
+          status.textContent = "Conversion failed. Try again.";
+          return;
+        }
+
+        convertedBlob = blob;
+
+        if (resultURL) URL.revokeObjectURL(resultURL);
+        resultURL = URL.createObjectURL(blob);
+
+        result.src = resultURL;
+        result.style.display = "block";
+        placeholder.style.display = "none";
+
+        download.disabled = false;
+        status.textContent = "✅ Conversion successful!";
+        downloadStatus.textContent = "Your PNG image is ready to download.";
+
+      }, "image/png");
+
+    } catch (error) {
+      convert.disabled = false;
+      status.textContent = "Error: " + error.message;
+    }
+  }, 50);
 });
 
-previewArea.addEventListener("pointermove",function(event){
- if(!imageReady||event.pointerType==="touch")return;
- const rect=previewArea.getBoundingClientRect();
- rotateY.value=Math.round(((event.clientX-rect.left)/rect.width-.5)*50);
- rotateX.value=Math.round(((event.clientY-rect.top)/rect.height-.5)*40);
- updatePreview();
+download.addEventListener("click", () => {
+  if (!convertedBlob) {
+    downloadStatus.textContent = "Convert an image first.";
+    return;
+  }
+
+  const url = URL.createObjectURL(convertedBlob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = fileBaseName + "-3d.png";
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+  downloadStatus.textContent = "✅ Download started!";
 });
-previewArea.addEventListener("pointerleave",function(){
- if(!imageReady)return;rotateX.value=0;rotateY.value=0;updatePreview();
+
+document.getElementById("reset").addEventListener("click", () => {
+  photo.value = "";
+  originalImage = null;
+  convertedBlob = null;
+
+  if (resultURL) {
+    URL.revokeObjectURL(resultURL);
+    resultURL = null;
+  }
+
+  result.removeAttribute("src");
+  result.style.display = "none";
+  placeholder.style.display = "block";
+
+  document.getElementById("fileName").textContent = "Choose Your Image";
+
+  depth.value = 12;
+  depthText.textContent = "12 px";
+
+  convert.disabled = true;
+  download.disabled = true;
+
+  status.textContent = "Select an image to get started.";
+  downloadStatus.textContent = "";
 });
-window.addEventListener("beforeunload",function(){if(currentImageURL)URL.revokeObjectURL(currentImageURL);});
-updatePreview();
 </script>
 </body>
 </html>
