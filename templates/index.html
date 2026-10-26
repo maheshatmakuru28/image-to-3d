@@ -1,1 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Natural 3D Photo Studio</title>
+</head>
+<body>
+    <h1>Natural 3D Photo Studio</h1>
+    <p>My website is working!</p>
 
+    <input type="file" id="photo" accept="image/*">
+    <br><br>
+    <img id="preview" style="max-width:100%; display:none;">
+
+    <script>
+        const input = document.getElementById("photo");
+        const preview = document.getElementById("preview");
+
+        input.addEventListener("change", function () {
+            const file = input.files[0];
+
+            if (!file) return;
+
+            if (!file.type.startsWith("image/")) {
+                alert("Please select an image.");
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (event) {
+                preview.src = event.target.result;
+                preview.style.display = "block";
+            };
+
+            reader.onerror = function () {
+                alert("Could not load this image. Please try again.");
+            };
+
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
