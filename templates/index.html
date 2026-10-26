@@ -3,42 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Natural 3D Photo Studio</title>
-</head>
-<body>
-    <h1>Natural 3D Photo Studio</h1>
-    <p>My website is working!</p>
+    <title>AI Photo to 3D Converter</title>
 
-    <input type="file" id="photo" accept="image/*">
-    <br><br>
-    <img id="preview" style="max-width:100%; display:none;">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #10172a, #263c59);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: #68e1ff;
+        }
+
+        .card {
+            background: #ffffff12;
+            border: 1px solid #ffffff25;
+            border-radius: 18px;
+            padding: 24px;
+            margin-top: 20px;
+        }
+
+        input[type="file"] {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin: 20px 0;
+            background: white;
+            color: #111;
+            border-radius: 10px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 10px;
+            padding: 14px 22px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #45e3bb;
+            color: #08251d;
+            width: 100%;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+        }
+
+        .photo {
+            display: block;
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            margin: 20px auto;
+            border-radius: 12px;
+            background: #00000030;
+        }
+
+        .download {
+            display: block;
+            margin-top: 15px;
+            padding: 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            background: #68e1ff;
+            color: #071a25;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #ffb4b4;
+            overflow-wrap: anywhere;
+        }
+
+        .hint {
+            color: #d5e1f0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+        <h1>📸 AI Photo to 3D Converter</h1>
+
+        <p class="hint">
+            Upload a normal photo and generate an AI depth-based
+            3D-style anaglyph image.
+        </p>
+
+        <section class="card">
+            <form method="POST"
+                  enctype="multipart/form-data"
+                  id="uploadForm">
+
+                <input
+                    type="file"
+                    name="photo"
+                    accept="image/png,image/jpeg,image/webp"
+                    required
+                    id="photoInput">
+
+                <button type="submit" id="convertButton">
+                    ✨ Convert Photo to 3D
+                </button>
+            </form>
+
+            <p id="loading" hidden>
+                Processing your photo with AI. Please wait...
+            </p>
+
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+
+            {% if result %}
+                <h2>Your Converted Image</h2>
+
+                <img
+                    class="photo"
+                    src="{{ result }}"
+                    alt="Converted 3D-style image">
+
+                <a
+                    class="download"
+                    href="{{ result }}"
+                    download="converted-3d-photo.png">
+                    ⬇ Download 3D Image
+                </a>
+            {% endif %}
+        </section>
+    </main>
 
     <script>
-        const input = document.getElementById("photo");
-        const preview = document.getElementById("preview");
+        const form = document.getElementById("uploadForm");
+        const input = document.getElementById("photoInput");
+        const button = document.getElementById("convertButton");
+        const loading = document.getElementById("loading");
 
-        input.addEventListener("change", function () {
-            const file = input.files[0];
-
-            if (!file) return;
-
-            if (!file.type.startsWith("image/")) {
-                alert("Please select an image.");
+        form.addEventListener("submit", function (event) {
+            if (!input.files || input.files.length === 0) {
+                event.preventDefault();
+                alert("Please select a photo first.");
                 return;
             }
 
-            const reader = new FileReader();
-
-            reader.onload = function (event) {
-                preview.src = event.target.result;
-                preview.style.display = "block";
-            };
-
-            reader.onerror = function () {
-                alert("Could not load this image. Please try again.");
-            };
-
-            reader.readAsDataURL(file);
+            loading.hidden = false;
+            button.disabled = true;
+            button.textContent = "Processing...";
         });
     </script>
 </body>
